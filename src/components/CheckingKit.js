@@ -91,7 +91,6 @@ class CheckingKit extends React.Component {
         kitNumber: "",
         redirect: false,
         started: null,
-        ended: null
     };
 
     componentDidMount() {
@@ -116,34 +115,31 @@ class CheckingKit extends React.Component {
     handleKitCChange() {
         this.setState({
             redirect: true,
-            started: new Date()
+            started: new Date().getTime()
         })
     }
 
     handleValidClick() {
-        this.props.history.push("/");
-        this.setState({
-            ended: new Date()
-        });
 
         const data = {
             uid: new Date().getTime(),
             debut: this.state.started,
-            fin: this.state.ended,
+            fin: new Date().getTime(),
             kit: this.state.kitNumber
         };
 
-        /*db.collection("historique")
+        db.collection("historique")
             .doc(data.uid.toString())
             .set(data)
             .then(() => {
-                alert("OK");
                 // window.location = "/";
             })
             .catch(error => {
                 console.log(error);
                 alert(JSON.stringify(error));
-            });*/
+            });
+
+        this.props.history.push("/");
     }
 
     checkItem(code) {
@@ -162,7 +158,8 @@ class CheckingKit extends React.Component {
                 if (
                     (e.color === "#20d04a" && e.code === "encre1") ||
                     (e.color === "#20d04a" || e.code === "encre2") ||
-                    (e.color === "#20d04a" || e.code === "scelle")
+                    (e.color === "#20d04a" || e.code === "scelle") ||
+                    (e.color === "#20d04a" || e.code === "enveloppes")
                 ) {
                     this.setState({
                         validCount: validCount + 1
@@ -202,7 +199,9 @@ class CheckingKit extends React.Component {
                     }
                     </tbody>
                 </table>
-                <button disabled={!validButton} className="btn btn-success"
+                <button
+                    // disabled={!validButton}
+                    className="btn btn-success"
                         onClick={() => { this.handleValidClick() }}>Valider
                 </button>
             </div>
@@ -264,7 +263,7 @@ class CheckingKit extends React.Component {
                 <div className="container">
                     <div className="checking-navigation">
                         <Link to="/" style={{marginLeft: 10}}>Accueil</Link>
-                        <p className="home-connected">Connecté en tant que ...</p><br/>
+                        <p className="home-connected">Connecté en tant que invité</p><br/>
                     </div>
                     <h1 className="checking-title">Vérifier un kit</h1>
                     <br/>
