@@ -125,7 +125,8 @@ class CheckingKit extends React.Component {
             uid: new Date().getTime(),
             debut: this.state.started,
             fin: new Date().getTime(),
-            kit: this.state.kitNumber
+            kit: this.state.kitNumber,
+            elementKit: this.state.elementKit
         };
 
         db.collection("historique")
