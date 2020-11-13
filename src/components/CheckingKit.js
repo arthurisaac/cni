@@ -11,7 +11,7 @@ class CheckingKit extends React.Component {
                 item: "Encre rigide",
                 code: "encre1",
                 qteValidee: 0,
-                qteTotale: 1,
+                qteTotale: 2,
                 color: "#D0021B"
             },
             {
@@ -25,7 +25,7 @@ class CheckingKit extends React.Component {
                 item: "Scellé",
                 code: "scelle",
                 qteValidee: 0,
-                qteTotale: 12,
+                qteTotale: 10,
                 color: "#D0021B"
             },
             {
@@ -46,7 +46,7 @@ class CheckingKit extends React.Component {
                 item: "Sachet bulletin valide",
                 code: "sachet",
                 qteValidee: 0,
-                qteTotale: 1,
+                qteTotale: 2,
                 color: "#D0021B"
             },
             {
@@ -159,6 +159,9 @@ class CheckingKit extends React.Component {
                     (e.color === "#20d04a" && e.code === "encre1") ||
                     (e.color === "#20d04a" || e.code === "encre2") ||
                     (e.color === "#20d04a" || e.code === "scelle") ||
+                    (e.color === "#20d04a" || e.code === "cachet1") ||
+                    (e.color === "#20d04a" || e.code === "scelle") ||
+                    (e.color === "#20d04a" || e.code === "cachet2") ||
                     (e.color === "#20d04a" || e.code === "enveloppes")
                 ) {
                     this.setState({
@@ -200,7 +203,7 @@ class CheckingKit extends React.Component {
                     </tbody>
                 </table>
                 <button
-                    // disabled={!validButton}
+                    disabled={!validButton}
                     className="btn btn-success"
                         onClick={() => { this.handleValidClick() }}>Valider
                 </button>
