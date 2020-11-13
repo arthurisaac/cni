@@ -9,14 +9,14 @@ class CheckingKit extends React.Component {
         elementKit: [
             {
                 item: "Encre rigide",
-                code: "encre1",
+                code: "encrerigide",
                 qteValidee: 0,
                 qteTotale: 2,
                 color: "#D0021B"
             },
             {
                 item: "Encre indélibile",
-                code: "encre2",
+                code: "encrerindelibile",
                 qteValidee: 0,
                 qteTotale: 1,
                 color: "#D0021B"
@@ -30,21 +30,21 @@ class CheckingKit extends React.Component {
             },
             {
                 item: "Cachet « annulé »",
-                code: "cachet1",
+                code: "cachetannule",
                 qteValidee: 0,
                 qteTotale: 1,
                 color: "#D0021B"
             },
             {
                 item: "Cachet « président »",
-                code: "cachet2",
+                code: "cachetpresident",
                 qteValidee: 0,
                 qteTotale: 1,
                 color: "#D0021B"
             },
             {
                 item: "Sachet bulletin valide",
-                code: "sachet",
+                code: "sachetbulletin",
                 qteValidee: 0,
                 qteTotale: 2,
                 color: "#D0021B"
