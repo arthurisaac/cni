@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { db } from "../services/firestore";
+// import { db } from "../services/firestore";
+import axios from 'axios';
 import '../index.css';
 
 const Home = () => {
@@ -8,13 +9,13 @@ const Home = () => {
     const [historiques, setHistorique] = useState([]);
 
     useEffect(() => {
-        db.collection("historique")
+        /*db.collection("historique")
             .get()
             .then(querySnapshot => {
                 const data = querySnapshot.docs.map(doc => doc.data());
                 // this.setState({ users: data });
                 setHistorique([...data]);
-            });
+            });*/
     });
 
     return (

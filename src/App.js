@@ -12,12 +12,6 @@ function App() {
 
     return (
         <Router>
-            {/*{isAuthenticated
-                ? <button onClick={handleLogout}>Logout</button>
-                : <>
-                    <Link to="/login">Login</Link>
-                </>
-            }*/}
             <AppContext.Provider value={{ isAuthenticated, userHasAuthenticated }}>
                 <Routes />
             </AppContext.Provider>

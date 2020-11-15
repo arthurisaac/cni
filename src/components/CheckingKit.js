@@ -1,7 +1,8 @@
 import React from 'react';
 import {withRouter, Link} from "react-router-dom";
 import onScan from 'onscan.js';
-import { db } from "../services/firestore";
+// import { db } from "../services/firestore";
+import axios from 'axios';
 
 class CheckingKit extends React.Component {
 
@@ -16,7 +17,7 @@ class CheckingKit extends React.Component {
             },
             {
                 item: "Encre indélibile",
-                code: "encrerindelibile",
+                code: "encreindel",
                 qteValidee: 0,
                 qteTotale: 1,
                 color: "#D0021B"
@@ -88,7 +89,7 @@ class CheckingKit extends React.Component {
         ],
         validButton: false,
         validCount: 0,
-        kitNumber: "",
+        kitNumber: 0,
         redirect: false,
         started: null,
     };
@@ -99,13 +100,18 @@ class CheckingKit extends React.Component {
             reactToPaste: true, // Compatibility to built-in scanners in paste-mode (as opposed to keyboard-mode)
             onScan: (sCode, iQty) => { // Alternative to document.addEventListener('scan')
                 console.log('Scanned: ' + iQty + 'x ' + sCode);
-                // alert(sCode);
                 this.checkItem(sCode);
             },
-            /*onKeyDetect: function(iKeyCode){ // output all potentially relevant key events - great for debugging!
-                console.log('Pressed: ' + iKeyCode);
-            }*/
         });
+
+        /*db.collection("historique")
+            .get()
+            .then(querySnapshot => {
+                this.setState({
+                    kitNumber: querySnapshot.size
+                });
+            });*/
+
     }
 
     componentWillUnmount() {
@@ -128,18 +134,33 @@ class CheckingKit extends React.Component {
             kit: this.state.kitNumber
         };
 
-        db.collection("historique")
-            .doc(data.uid.toString())
-            .set(data)
-            .then(() => {
-                // window.location = "/";
-            })
-            .catch(error => {
-                console.log(error);
-                alert(JSON.stringify(error));
-            });
+        axios.post("http://localhost:4000/historiques", data)
+            .then(
+                res => console.log(res),
+                err => console.log(err));
 
-        this.props.history.push("/");
+        // db.collection("historique")
+        //     .doc(data.uid.toString())
+        //     .set(data)
+        //     .then(() => {
+        //         // window.location = "/";
+        //     })
+        //     .catch(error => {
+        //         console.log(error);
+        //         alert(JSON.stringify(error));
+        //     });
+        //
+        // db.collection("historique")
+        //     .get()
+        //     .then(querySnapshot => {
+        //         this.setState({
+        //             kitNumber: querySnapshot.size
+        //         });
+        //     });
+
+        this.setState({
+            redirect: false
+        });
     }
 
     checkItem(code) {
@@ -149,6 +170,9 @@ class CheckingKit extends React.Component {
             element.qteValidee = element.qteValidee + 1;
             if (element.qteTotale === element.qteValidee) {
                 element.color = "#20d04a";
+            }
+            if (element.qteValidee > element.qteTotale) {
+                alert('Quantité validée atteinte');
             }
             this.setState({
                 elementKit: elementKit
@@ -208,7 +232,6 @@ class CheckingKit extends React.Component {
                         onClick={() => { this.handleValidClick() }}>Valider
                 </button>
             </div>
-
         )
     }
 
@@ -231,21 +254,28 @@ class CheckingKit extends React.Component {
 
     renderKitNumero() {
         return (
-            <div className="checking-container">
-                <p>Scanner le kit :</p><br />
-                <input type="text"
-                       placeholder="KIT N° 001"
-                       className="checking-container--input"
-                       value={this.state.kitNumber}
-                       name="kitNumber"
-                       onChange={e => {
-                           this.setState({kitNumber: e.target.value})
-                       }}
-                />
-                <button className="btn btn-success btn-lg" style={{marginLeft: 80}}
-                        onClick={() => this.handleKitCChange()}>SUIVANT
-                </button>
-            </div>
+            <form onSubmit={this.handleKitCChange.bind()}>
+                <div className="checking-container">
+                    <p>Scanner le kit :</p><br />
+                    <input type="text"
+                           placeholder="KIT N° 001"
+                           className="checking-container--input"
+                           value={`KIT N° ${("00" + this.state.kitNumber).slice(-3)}`}
+                           name="kitNumber"
+                           autoFocus={true}
+                           /*onChange={e => {
+                               this.setState({kitNumber: e.target.value})
+                           }}*/
+                           readOnly={true}
+                    />
+                    <button className="btn btn-success btn-lg"
+                            style={{marginLeft: 80}}
+                            type="submit"
+                            onClick={() => this.handleKitCChange()}>SUIVANT
+                    </button>
+                </div>
+            </form>
+
         )
     }
 
