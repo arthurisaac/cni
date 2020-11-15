@@ -5,6 +5,7 @@ import NotFound from "./components/NotFound";
 import Login from "./components/Login";
 import CheckingKit from "./components/CheckingKit";
 import CheckKit from "./components/CheckKit";
+import History from "./components/History";
 
 export default function Routes() {
 
@@ -21,6 +22,9 @@ export default function Routes() {
             </Route>
             <Route exact path='/checkkit'>
                 <CheckKit />
+            </Route>
+            <Route exact path='/history'>
+                <History />
             </Route>
             <Route>
                 <NotFound />

@@ -1,53 +1,43 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-// import { db } from "../services/firestore";
-import axios from 'axios';
-import '../index.css';
+import React, { useState, useEffect }  from 'react';
+import { db } from "../services/firestore";
+import {Link} from "react-router-dom";
 
-const Home = () => {
+const History = () => {
 
     const [historiques, setHistorique] = useState([]);
 
     useEffect(() => {
-        /*db.collection("historique")
+        db.collection("historique")
             .get()
             .then(querySnapshot => {
                 const data = querySnapshot.docs.map(doc => doc.data());
                 // this.setState({ users: data });
                 setHistorique([...data]);
-            });*/
+            });
     });
 
     return (
-        <div className="home">
-            <div className="home-header">
-                <h3>Plateforme de vérification de kit électoral</h3>
-                <img src={'./assets/logo.png'} alt="logo"/>
-            </div>
-
+        <div>
             <div>
-                <div className="home-header--bande-rouge"/>
-                <div className="home-header--bande-verte"/>
-            </div>
-            <br />
-
-            <div className="container">
-                <p className="home-connected">Connecté en tant que invité</p><br />
-                <div className="home-big-button">
-                    <div className="home-big-button--item" style={{ backgroundColor: "#05A9AF" }}>
-                        <Link to="/checkingkit">Vérifier un kit</Link>
-                    </div>
-                    <div className="home-big-button--item" style={{ backgroundColor: "#7FBB0B" }}>
-                        <Link to="/history">Consulter l'historique complet</Link>
-                    </div>
-                    <div className="home-big-button--item" style={{ backgroundColor: "#006DCB" }}>
-                        <Link to="/">Statistiques</Link>
-                    </div>
+                <div className="home-header">
+                    <h3>Plateforme de vérification de kit électoral</h3>
+                    <img src={'./assets/logo.png'} alt="logo"/>
                 </div>
-                <br />
-                <br />
-                <h1 className="home-check-title">Historique de vérification</h1><br />
-                <table className="table table-bordered home-table">
+
+                <div>
+                    <div className="home-header--bande-rouge"/>
+                    <div className="home-header--bande-verte"/>
+                </div>
+                <br/>
+            </div>
+            <div className="container">
+                    <div className="checking-navigation">
+                        <Link to="/" style={{marginLeft: 10}}>Accueil</Link>
+                        <p className="home-connected">Connecté en tant que invité</p><br/>
+                    </div>
+                    <h1 className="checking-title">Historique</h1>
+                    <br />
+                    <table className="table table-bordered home-table">
                     <thead>
                     <tr style={{ background: "#1F94FE", color: "#fff"}}>
                         <td>Numéro de kit</td>
@@ -71,11 +61,12 @@ const Home = () => {
                     }
                     </tbody>
                 </table>
+            
             </div>
         </div>
     )
 
 };
 
-export default Home;
+export default History;
 
