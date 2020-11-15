@@ -1,100 +1,108 @@
 import React from 'react';
-import {withRouter, Link} from "react-router-dom";
+import {withRouter} from "react-router-dom";
 import onScan from 'onscan.js';
 // import { db } from "../services/firestore";
 import axios from 'axios';
+import socketIOClient from "socket.io-client";
+import Header from "./Header";
+import Connected from "./Connected";
+
+const elements = [
+    {
+        item: "Encre rigide",
+        code: "encrerigide",
+        qteValidee: 0,
+        qteTotale: 2,
+        color: "#D0021B"
+    },
+    {
+        item: "Encre indélibile",
+        code: "encreindel",
+        qteValidee: 0,
+        qteTotale: 1,
+        color: "#D0021B"
+    },
+    {
+        item: "Scellé",
+        code: "scelle",
+        qteValidee: 0,
+        qteTotale: 10,
+        color: "#D0021B"
+    },
+    {
+        item: "Cachet « annulé »",
+        code: "cachetannule",
+        qteValidee: 0,
+        qteTotale: 1,
+        color: "#D0021B"
+    },
+    {
+        item: "Cachet « président »",
+        code: "cachetpresident",
+        qteValidee: 0,
+        qteTotale: 1,
+        color: "#D0021B"
+    },
+    {
+        item: "Sachet bulletin valide",
+        code: "sachetbulletin",
+        qteValidee: 0,
+        qteTotale: 2,
+        color: "#D0021B"
+    },
+    {
+        item: "Enveloppes sécurisées",
+        code: "enveloppes",
+        qteValidee: 0,
+        qteTotale: 8,
+        require: true,
+        color: "#D0021B"
+    },
+    {
+        item: "Stylos",
+        code: "stylos",
+        qteValidee: 0,
+        qteTotale: 0,
+        color: "#808080"
+    },
+    {
+        item: "Gilets électoraux",
+        code: "gilets",
+        qteValidee: 0,
+        qteTotale: 0,
+        color: "#808080"
+    },
+    {
+        item: "Bloc-notes",
+        code: "blocnotes",
+        qteValidee: 0,
+        qteTotale: 0,
+        color: "#808080"
+    },
+    {
+        item: "Mouchoirs",
+        code: "mouchoirs",
+        qteValidee: 0,
+        qteTotale: 0,
+        color: "#808080"
+    }
+];
+
+const socket = socketIOClient("http://localhost:4000");
 
 class CheckingKit extends React.Component {
 
     state = {
-        elementKit: [
-            {
-                item: "Encre rigide",
-                code: "encrerigide",
-                qteValidee: 0,
-                qteTotale: 2,
-                color: "#D0021B"
-            },
-            {
-                item: "Encre indélibile",
-                code: "encreindel",
-                qteValidee: 0,
-                qteTotale: 1,
-                color: "#D0021B"
-            },
-            {
-                item: "Scellé",
-                code: "scelle",
-                qteValidee: 0,
-                qteTotale: 10,
-                color: "#D0021B"
-            },
-            {
-                item: "Cachet « annulé »",
-                code: "cachetannule",
-                qteValidee: 0,
-                qteTotale: 1,
-                color: "#D0021B"
-            },
-            {
-                item: "Cachet « président »",
-                code: "cachetpresident",
-                qteValidee: 0,
-                qteTotale: 1,
-                color: "#D0021B"
-            },
-            {
-                item: "Sachet bulletin valide",
-                code: "sachetbulletin",
-                qteValidee: 0,
-                qteTotale: 2,
-                color: "#D0021B"
-            },
-            {
-                item: "Enveloppes sécurisées",
-                code: "enveloppes",
-                qteValidee: 0,
-                qteTotale: 8,
-                require: true,
-                color: "#D0021B"
-            },
-            {
-                item: "Stylos",
-                code: "stylos",
-                qteValidee: 0,
-                qteTotale: 0,
-                color: "#808080"
-            },
-            {
-                item: "Gilets électoraux",
-                code: "gilets",
-                qteValidee: 0,
-                qteTotale: 0,
-                color: "#808080"
-            },
-            {
-                item: "Bloc-notes",
-                code: "blocnotes",
-                qteValidee: 0,
-                qteTotale: 0,
-                color: "#808080"
-            },
-            {
-                item: "Mouchoirs",
-                code: "mouchoirs",
-                qteValidee: 0,
-                qteTotale: 0,
-                color: "#808080"
-            }
-        ],
+        elementKit: elements,
         validButton: false,
-        validCount: 0,
         kitNumber: 0,
         redirect: false,
         started: null,
+        ENDPOINT: "http://localhost:4000/"
     };
 
     componentDidMount() {
+        const {elementKit} = this.state;
         onScan.attachTo(document, {
             suffixKeyCodes: [13], // enter-key expected at the end of a scan
             reactToPaste: true, // Compatibility to built-in scanners in paste-mode (as opposed to keyboard-mode)
@@ -103,6 +111,37 @@ class CheckingKit extends React.Component {
                 this.checkItem(sCode);
             },
         });
+
+        this.getHistoriesLength();
+
+        socket.on("new-kit-number", data => {
+            console.log("new-kit-number", data);
+        });
+
+        socket.on("scanned-kit-item", data => {
+            // console.log("new-kit-number", data);
+
+            elementKit.forEach(e => {
+                if (e.code === data.code) {
+                    e.item = data.item;
+                    e.code = data.code;
+                    e.qteValidee = data.qteValidee;
+                    e.qteTotale = data.qteTotale;
+                    e.color = data.color;
+                }
+            });
+
+            this.setState({
+                elementKit: elementKit
+            });
+
+            this.checkValidButton(elementKit);
+        });
+
+        const type = sessionStorage.getItem("type");
+        if (type !== "master") {
+            window.location = '/checkkit';
+        }
 
         /*db.collection("historique")
             .get()
@@ -114,15 +153,23 @@ class CheckingKit extends React.Component {
 
     }
 
+    getHistoriesLength() {
+        axios.get(`${this.state.ENDPOINT}historiques`)
+            .then(
+                res => this.setState({kitNumber: res.data.length}),
+                err => console.log(err));
+    }
+
     componentWillUnmount() {
         onScan.detachFrom(document);
     }
 
-    handleKitCChange() {
+    handleKitChange() {
         this.setState({
             redirect: true,
             started: new Date().getTime()
-        })
+        });
+        socket.emit("new-kit-number", {kitNumber: this.state.kitNumber});
     }
 
     handleValidClick() {
@@ -135,37 +182,22 @@ class CheckingKit extends React.Component {
             elementKit: this.state.elementKit
         };
 
-        axios.post("http://localhost:4000/historiques", data)
+        axios.post(`${this.state.ENDPOINT}historiques`, data)
             .then(
-                res => console.log(res),
+                res => console.log(res.data),
                 err => console.log(err));
 
-        // db.collection("historique")
-        //     .doc(data.uid.toString())
-        //     .set(data)
-        //     .then(() => {
-        //         // window.location = "/";
-        //     })
-        //     .catch(error => {
-        //         console.log(error);
-        //         alert(JSON.stringify(error));
-        //     });
-        //
-        // db.collection("historique")
-        //     .get()
-        //     .then(querySnapshot => {
-        //         this.setState({
-        //             kitNumber: querySnapshot.size
-        //         });
-        //     });
-
         this.setState({
-            redirect: false
+            redirect: false,
+            elementKit: elements,
+            validButton: false,
+            started: null,
+            kitNumber: this.state.kitNumber + 1
         });
     }
 
     checkItem(code) {
-        const {elementKit, validCount} = this.state;
+        const {elementKit} = this.state;
         const element = elementKit.find(e => e.code === code);
         if (element) {
             element.qteValidee = element.qteValidee + 1;
@@ -178,28 +210,24 @@ class CheckingKit extends React.Component {
             this.setState({
                 elementKit: elementKit
             });
-            // console.log(this.state.elementKit);
-            elementKit.forEach(e => {
-                if (
-                    (e.color === "#20d04a" && e.code === "encre1") ||
-                    (e.color === "#20d04a" || e.code === "encre2") ||
-                    (e.color === "#20d04a" || e.code === "scelle") ||
-                    (e.color === "#20d04a" || e.code === "cachet1") ||
-                    (e.color === "#20d04a" || e.code === "scelle") ||
-                    (e.color === "#20d04a" || e.code === "cachet2") ||
-                    (e.color === "#20d04a" || e.code === "enveloppes")
-                ) {
-                    this.setState({
-                        validCount: validCount + 1
-                    });
-                }
-            });
-            if (this.state.validCount === 3) {
-                this.setState({
-                    validButton: true
-                });
-                console.log("Valid");
+            this.checkValidButton(elementKit);
+
+            socket.emit('scanned-kit-item', element);
+        }
+    }
+
+    checkValidButton(elementKit) {
+        let valid = 0;
+        elementKit.forEach(e => {
+            if (e.qteValidee >= e.qteTotale) {
+                valid++;
             }
+        });
+
+        if (valid === 11) {
+            this.setState({
+                validButton: true
+            });
         }
     }
 
@@ -228,51 +256,36 @@ class CheckingKit extends React.Component {
                     </tbody>
                 </table>
                 <button
-                    disabled={!validButton}
+                    // disabled={!validButton}
                     className="btn btn-success"
-                        onClick={() => { this.handleValidClick() }}>Valider
+                    onClick={() => {
+                        this.handleValidClick()
+                    }}>Valider
                 </button>
-            </div>
-        )
-    }
-
-    static renderHeader() {
-        return (
-            <div>
-                <div className="home-header">
-                    <h3>Plateforme de vérification de kit électoral</h3>
-                    <img src={'./assets/logo.png'} alt="logo"/>
-                </div>
-
-                <div>
-                    <div className="home-header--bande-rouge"/>
-                    <div className="home-header--bande-verte"/>
-                </div>
-                <br/>
             </div>
         )
     }
 
     renderKitNumero() {
         return (
-            <form onSubmit={this.handleKitCChange.bind()}>
+            <form onSubmit={this.handleKitChange.bind()}>
                 <div className="checking-container">
-                    <p>Scanner le kit :</p><br />
+                    <p>Scanner le kit :</p><br/>
                     <input type="text"
                            placeholder="KIT N° 001"
                            className="checking-container--input"
                            value={`KIT N° ${("00" + this.state.kitNumber).slice(-3)}`}
                            name="kitNumber"
                            autoFocus={true}
-                           /*onChange={e => {
-                               this.setState({kitNumber: e.target.value})
-                           }}*/
+                        /*onChange={e => {
+                            this.setState({kitNumber: e.target.value})
+                        }}*/
                            readOnly={true}
                     />
                     <button className="btn btn-success btn-lg"
                             style={{marginLeft: 80}}
                             type="submit"
-                            onClick={() => this.handleKitCChange()}>SUIVANT
+                            onClick={() => this.handleKitChange()}>SUIVANT
                     </button>
                 </div>
             </form>
@@ -293,18 +306,12 @@ class CheckingKit extends React.Component {
     render() {
         return (
             <div>
-                {CheckingKit.renderHeader()}
+                <Header/>
                 <div className="container">
-                    <div className="checking-navigation">
-                        <Link to="/" style={{marginLeft: 10}}>Accueil</Link>
-                        <p className="home-connected">Connecté en tant que invité</p><br/>
-                    </div>
-                    <h1 className="checking-title">Vérifier un kit</h1>
-                    <br/>
-                    <br/>
+                    <Connected/>
                     {this.renderKitChecking()}
                 </div>
-                <br />
+                <br/>
             </div>
         )
     }
