@@ -1,99 +1,119 @@
 import React from 'react';
 import {withRouter, Link} from "react-router-dom";
 import onScan from 'onscan.js';
-import { db } from "../services/firestore";
+import axios from "axios";
+import base from "./constants";
+import socketIOClient from "socket.io-client";
+// import { db } from "../services/firestore";
+const REFRESH = "refresh";
 
+/*"kit": [{
+       "item": "Encre rigide",
+       "code": "encre1",
+       "qteValidee": 0,
+       "qteTotale": 1,
+       "color": "#D0021B"
+   }, {
+       "item": "Encre indélibile",
+       "code": "encre2",
+       "qteValidee": 0,
+       "qteTotale": 1,
+       "color": "#D0021B"
+   }, {
+       "item": "Scellé",
+       "code": "scelle",
+       "qteValidee": 0,
+       "qteTotale": 12,
+       "color": "#D0021B"
+   }, {
+       "item": "Cachet « annulé »",
+       "code": "cachet1",
+       "qteValidee": 0,
+       "qteTotale": 1,
+       "color": "#D0021B"
+   }, {
+       "item": "Cachet « président »",
+       "code": "cachet2",
+       "qteValidee": 0,
+       "qteTotale": 1,
+       "color": "#D0021B"
+   }, {
+       "item": "Sachet bulletin valide",
+       "code": "sachet",
+       "qteValidee": 0,
+       "qteTotale": 1,
+       "color": "#D0021B"
+   }, {
+       "item": "Enveloppes sécurisées",
+       "code": "enveloppes",
+       "qteValidee": 0,
+       "qteTotale": 8,
+       "require": true,
+       "color": "#D0021B"
+   }, {
+       "item": "Stylos",
+       "code": "stylos",
+       "qteValidee": 0,
+       "qteTotale": 0,
+       "color": "#808080"
+   }, {
+       "item": "Gilets électoraux",
+       "code": "gilets",
+       "qteValidee": 0,
+       "qteTotale": 0,
+       "color": "#808080"
+   }, {
+       "item": "Bloc-notes",
+       "code": "blocnotes",
+       "qteValidee": 0,
+       "qteTotale": 0,
+       "color": "#808080"
+   }, {
+       "item": "Mouchoirs",
+       "code": "mouchoirs",
+       "qteValidee": 0,
+       "qteTotale": 0,
+       "color": "#808080"
+   }]*/
+//let socket = null;
 class CheckingKit extends React.Component {
 
     state = {
-        elementKit: [
-            {
-                item: "Encre rigide",
-                code: "encre1",
-                qteValidee: 0,
-                qteTotale: 1,
-                color: "#D0021B"
-            },
-            {
-                item: "Encre indélibile",
-                code: "encre2",
-                qteValidee: 0,
-                qteTotale: 1,
-                color: "#D0021B"
-            },
-            {
-                item: "Scellé",
-                code: "scelle",
-                qteValidee: 0,
-                qteTotale: 12,
-                color: "#D0021B"
-            },
-            {
-                item: "Cachet « annulé »",
-                code: "cachet1",
-                qteValidee: 0,
-                qteTotale: 1,
-                color: "#D0021B"
-            },
-            {
-                item: "Cachet « président »",
-                code: "cachet2",
-                qteValidee: 0,
-                qteTotale: 1,
-                color: "#D0021B"
-            },
-            {
-                item: "Sachet bulletin valide",
-                code: "sachet",
-                qteValidee: 0,
-                qteTotale: 1,
-                color: "#D0021B"
-            },
-            {
-                item: "Enveloppes sécurisées",
-                code: "enveloppes",
-                qteValidee: 0,
-                qteTotale: 8,
-                require: true,
-                color: "#D0021B"
-            },
-            {
-                item: "Stylos",
-                code: "stylos",
-                qteValidee: 0,
-                qteTotale: 0,
-                color: "#808080"
-            },
-            {
-                item: "Gilets électoraux",
-                code: "gilets",
-                qteValidee: 0,
-                qteTotale: 0,
-                color: "#808080"
-            },
-            {
-                item: "Bloc-notes",
-                code: "blocnotes",
-                qteValidee: 0,
-                qteTotale: 0,
-                color: "#808080"
-            },
-            {
-                item: "Mouchoirs",
-                code: "mouchoirs",
-                qteValidee: 0,
-                qteTotale: 0,
-                color: "#808080"
-            }
-        ],
+        elementKit: [],
         validButton: false,
         validCount: 0,
         kitNumber: "",
         redirect: false,
         started: null,
+        user: null,
+        socket: socketIOClient(base())
     };
 
     componentDidMount() {
+        const { socket } = this.state;
+
+        /*socket.on("welcome", data => {
+            console.log(data);
+        });*/
+        socket.on("message", (data) => {
+            console.log(data);
+            if (data.action === REFRESH) {
+                window.location.reload(true);
+            }
+            if (data.action === 'numero') {
+                this.setState({
+                    kitNumber: data.numero,
+                });
+                this.handleKitCChange();
+            }
+        });
+
+        if (sessionStorage.getItem('user')) {
+            this.setState({
+                user: JSON.parse(sessionStorage.getItem('user'))
+            });
+        }
+        this.getKitElement();
         onScan.attachTo(document, {
             suffixKeyCodes: [13], // enter-key expected at the end of a scan
             reactToPaste: true, // Compatibility to built-in scanners in paste-mode (as opposed to keyboard-mode)
@@ -112,24 +132,46 @@ class CheckingKit extends React.Component {
         onScan.detachFrom(document);
     }
 
+    async getKitElement() {
+        try {
+            const response = await axios.get(base() + 'kits');
+            if (response.data != null) {
+                this.setState({
+                    elementKit: response.data['kit']
+                });
+            }
+        } catch (e) {
+            console.log(e);
+        }
+
+    }
+
     handleKitCChange() {
         this.setState({
             redirect: true,
             started: new Date().getTime()
-        })
+        });
     }
 
-    handleValidClick() {
+    async handleValidClick() {
 
         const data = {
             uid: new Date().getTime(),
             debut: this.state.started,
             fin: new Date().getTime(),
             kit: this.state.kitNumber,
-            elementKit: this.state.elementKit
+            user: JSON.parse(sessionStorage.getItem("user"))
         };
+        try {
+            await axios.post(base() + 'history', data, {});
+            //this.state.socket.emit('message', { action: REFRESH, from: this.state.user, numero: null});
+            //this.props.history.push("/");
+        } catch (e) {
+            console.log(e);
+        }
+        this.state.socket.emit('message', { action: REFRESH, from: this.state.user._id, numero: null});
 
-        db.collection("historique")
+        /*db.collection("historique")
             .doc(data.uid.toString())
             .set(data)
             .then(() => {
@@ -138,9 +180,7 @@ class CheckingKit extends React.Component {
             .catch(error => {
                 console.log(error);
                 alert(JSON.stringify(error));
-            });
-
-        this.props.history.push("/");
+            });*/
     }
 
     checkItem(code) {
@@ -177,7 +217,12 @@ class CheckingKit extends React.Component {
     }
 
     tableauKit() {
-        const {elementKit, validButton} = this.state;
+        const {elementKit, user} = this.state;
+        let data = elementKit.filter( element => element.code === user.role);
+
+        if (user.role === "admin" || user.role === "master") {
+            data = elementKit;
+        }
         return (
             <div>
                 <table className="table table-bordered table-striped home-table">
@@ -190,7 +235,7 @@ class CheckingKit extends React.Component {
                     </thead>
                     <tbody>
                     {
-                        elementKit.map((e, i) => (
+                        data.map((e, i) => (
                             <tr key={i}>
                                 <td style={{color: e.color, textAlign: "left"}}>{e.item}</td>
                                 <td style={{color: e.color}}>{e.qteValidee}</td>
@@ -241,7 +286,10 @@ class CheckingKit extends React.Component {
                        }}
                 />
                 <button className="btn btn-success btn-lg" style={{marginLeft: 80}}
-                        onClick={() => this.handleKitCChange()}>SUIVANT
+                        onClick={() => {
+                            this.handleKitCChange();
+                            this.state.socket.emit('message', { action: "numero", numero: this.state.kitNumber, from: this.state.user._id});
+                        }}>SUIVANT
                 </button>
             </div>
         )
@@ -258,13 +306,18 @@ class CheckingKit extends React.Component {
     }
 
     render() {
+        const user =  JSON.parse(sessionStorage.getItem('user'));
+
         return (
             <div>
                 {CheckingKit.renderHeader()}
                 <div className="container">
                     <div className="checking-navigation">
                         <Link to="/" style={{marginLeft: 10}}>Accueil</Link>
-                        <p className="home-connected">Connecté en tant que invité</p><br/>
+                        <p className="home-connected" onClick={() => {
+                            sessionStorage.clear();
+                            window.history.go('/');
+                        }}>Connecté en tant que {user.username}</p><br/>
                     </div>
                     <h1 className="checking-title">Vérifier un kit</h1>
                     <br/>

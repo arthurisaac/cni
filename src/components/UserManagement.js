@@ -1,17 +1,13 @@
 import React, {useState} from 'react';
-import {Form, Button} from "react-bootstrap";
-import { useHistory } from "react-router-dom";
-import {useAppContext} from "../libs/contextLib";
-import '../index.css';
+import {Button, Form} from "react-bootstrap";
 import axios from "axios";
+import base from "./constants";
 
-function Login() {
-    const history = useHistory();
-    const {userHasAuthenticated} = useAppContext();
-
+const UserManagement = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [errorLogin, setErrorLogin] = useState(false);
+    const [role, setRole] = useState("");
+    const [success, setSuccess] = useState(false);
 
     function validateForm() {
         return username.length > 0 && password.length > 0;
@@ -19,34 +15,42 @@ function Login() {
 
     function handleSubmit(event) {
         event.preventDefault();
-        setErrorLogin(false);
 
-        axios.post('http://localhost:4000/users/login', {
+        axios.post(base() + 'users', {
             username: username,
             password: password,
+            role: role,
         }, {})
             .then(function (response) {
-                //console.log(response);
-                if (response.data != null) {
-                    sessionStorage.setItem('user', JSON.stringify(response.data))
-                    userHasAuthenticated(true);
-                    history.push("/");
-                }
+                setSuccess(true);
             })
             .catch(function (error) {
                 console.log(error);
-                setErrorLogin(true);
             });
-
-        /*userHasAuthenticated(true);
-        history.push("/");*/
     }
 
     return (
-        <div className="container">
-            <div className="login-card login-form">
-                <h1>Authetification</h1>
-                <hr />
+        <div>
+            <div className="home">
+                <div className="home-header">
+                    <h3>Plateforme de vérification de kit électoral</h3>
+                    <img src={'./assets/logo.png'} alt="logo"/>
+                </div>
+                <div>
+                    <div className="home-header--bande-rouge"/>
+                    <div className="home-header--bande-verte"/>
+                </div>
+                <br/>
+            </div>
+            <div className="container">
+
+                <h1>Gestion des utilisateurs</h1>
+                <br/>
+
+                    { success ? <div className="alert alert-success" role="alert">
+                        Success
+                    </div> : <div></div>}
+
                 <form onSubmit={handleSubmit}>
                     <Form.Group controlId="username">
                         <Form.Label>Nom d'utilisateur</Form.Label>
@@ -65,19 +69,22 @@ function Login() {
                             type="password"
                         />
                     </Form.Group>
-                    <br/>
+                    <Form.Group controlId="role">
+                        <Form.Label>Password</Form.Label>
+                        <Form.Control
+                            value={role}
+                            onChange={e => setRole(e.target.value)}
+                            type="password"
+                        />
+                    </Form.Group>
                     <Button variant="success" type="submit" disabled={!validateForm()}>
-                        Se connecter
+                        Enregistrer
                     </Button>
-                    <br/>
-                    <div className="errorLogin">
-                        {errorLogin ? <h6>Nom d'utilisateur ou mot de passe incorrect</h6> : <span></span>}
-                    </div>
                 </form>
             </div>
         </div>
-    )
-}
 
-export default Login;
+    );
+};
 
+export default UserManagement;

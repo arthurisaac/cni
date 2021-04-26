@@ -6,6 +6,8 @@ import Login from "./components/Login";
 import CheckingKit from "./components/CheckingKit";
 import CheckKit from "./components/CheckKit";
 import History from "./components/History";
+import UserManagement from "./components/UserManagement";
+import Statistic from "./components/Statistic";
 
 export default function Routes() {
 
@@ -25,6 +27,12 @@ export default function Routes() {
             </Route>
             <Route exact path='/history'>
                 <History />
+            </Route>
+            <Route exact path='/utilisateurs'>
+                <UserManagement />
+            </Route>
+            <Route exact path='/statistics'>
+                <Statistic />
             </Route>
             <Route>
                 <NotFound />

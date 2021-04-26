@@ -18,10 +18,12 @@ input[type=file] {
 }
 
 .login-card {
-    box-shadow: 1px 1px 2px black;
-    border-radius: 8px;
-    padding: 20px;
-    margin: 20px;
+    box-shadow: 0px 5px 20px #00000052;
+    border-radius: 11px;
+    padding: 50px;
+    margin-left: 20%;
+    margin-right: 20%;
+    margin-top: 50px;
 }
 
 .login-header {
@@ -31,6 +33,10 @@ input[type=file] {
 }
 
 .login-form {
+    text-align: left;
+}
+
+.login-form h1{
     text-align: center;
 }
 
@@ -106,6 +112,7 @@ input[type=file] {
 .home-connected {
     text-align: right;
     margin-right: 20px;
+    cursor: pointer;
 }
 
 .home-check-title {
@@ -151,4 +158,12 @@ input[type=file] {
 
 .checking-navigation p {
     float: right;
+}
+
+.success {
+    color: green;
+}
+
+.errorLogin {
+    color: red;
 }

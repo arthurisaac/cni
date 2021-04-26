@@ -1,20 +1,33 @@
 import React, { useState, useEffect }  from 'react';
-import { db } from "../services/firestore";
 import {Link} from "react-router-dom";
+import axios from "axios";
+import base from "./constants";
 
 const History = () => {
 
     const [historiques, setHistorique] = useState([]);
 
     useEffect(() => {
-        db.collection("historique")
+        getHistories();
+        /*db.collection("historique")
             .get()
             .then(querySnapshot => {
                 const data = querySnapshot.docs.map(doc => doc.data());
                 // this.setState({ users: data });
                 setHistorique([...data]);
+            });*/
+    }, []);
+
+    const getHistories = () => {
+        axios.get(base() + "history")
+            .then((response) => {
+                console.log(response);
+                setHistorique(response.data);
+            })
+            .catch((error) => {
+                console.log(error);
             });
-    });
+    };
 
     return (
         <div>
